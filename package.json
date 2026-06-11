@@ -1,12 +1,14 @@
 {
   "name": "canva-magic-layers",
-  "version": "2.0.0",
-  "description": "Expose Canva Magic Layers to agents: photo in -> all editable transparent-PNG layers out. Zero dependencies; Windows/Mac/Linux.",
+  "version": "2.1.0",
+  "description": "Expose Canva Magic Layers to agents: photo in -> all editable transparent-PNG layers out. CLI + MCP server, zero dependencies; Windows/Mac/Linux.",
   "bin": {
-    "canva-magic-layers": "cli.js"
+    "canva-magic-layers": "cli.js",
+    "canva-magic-layers-mcp": "mcp.js"
   },
   "scripts": {
     "test": "node --test",
+    "mcp": "node mcp.js",
     "login": "node cli.js login",
     "status": "node cli.js status"
   },

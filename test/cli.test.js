@@ -45,6 +45,7 @@ test("USAGE lists every command and the Env line", () => {
   assert.ok(USAGE.includes("status"), "USAGE mentions status");
   assert.ok(USAGE.includes("decompose"), "USAGE mentions decompose");
   assert.ok(USAGE.includes("harvest"), "USAGE mentions harvest");
+  assert.ok(USAGE.includes("mcp"), "USAGE mentions the mcp server command");
   assert.ok(USAGE.includes("CANVA_CHROME"), "USAGE documents CANVA_CHROME env var");
   assert.ok(USAGE.includes("HEADED"), "USAGE documents HEADED env var");
   assert.ok(USAGE.includes("PROFILE"), "USAGE documents PROFILE env var");
@@ -136,6 +137,23 @@ for (const [cmd, a1, a2, r] of [
     assert.ok(c.out().includes("canva-magic-layers"), "prints USAGE instead");
   });
 }
+
+// --- mcp: dispatch starts the server with deps (stub the module via the require cache) -------
+test("`mcp` command starts the MCP server and hands it the deps", async () => {
+  const mcpPath = require.resolve("../mcp");
+  const real = require.cache[mcpPath];
+  const calls = [];
+  require.cache[mcpPath] = { id: mcpPath, filename: mcpPath, loaded: true, exports: { serve: (d) => calls.push(d) } };
+  try {
+    const c = capture();
+    const deps = allSpies();
+    try { await run(["node", "cli.js", "mcp"], deps); } finally { c.restore(); }
+    assert.strictEqual(calls.length, 1, "mcp.serve called exactly once");
+    assert.strictEqual(calls[0], deps, "serve receives the deps object");
+    assert.strictEqual(c.out(), "", "mcp prints nothing to stdout (stdout is the protocol channel)");
+    for (const k of ["status", "login", "decompose", "harvest"]) assert.strictEqual(deps[k].calls.length, 0, `${k} not called`);
+  } finally { if (real) require.cache[mcpPath] = real; else delete require.cache[mcpPath]; }
+});
 
 // --- error boundary + non-zero exit -----------------------------------------
 test("a thrown handler error prints '✗ <message>' on stderr and sets exit code 1", async () => {

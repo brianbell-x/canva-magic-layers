@@ -5,7 +5,7 @@ description: Split a flat image into separate editable layers — each object as
 
 # Canva Magic Layers
 
-Turn one flat image into separate transparent-PNG layers via a signed-in Canva session. Zero dependencies — needs only Node 22+ and Google Chrome (or Edge/Brave). Runs on Windows/Mac/Linux. Run everything from the skill directory (`C:\dev\canva-skill`).
+Turn one flat image into separate transparent-PNG layers via a signed-in Canva session. Zero dependencies — needs only Node 22+ and Google Chrome (or Edge/Brave). Runs on Windows/Mac/Linux. Run everything from this skill's own directory (where `SKILL.md` and `cli.js` live).
 
 Setup (first time): `node cli.js login` — opens Chrome to sign in to Canva. **login needs a human; you can't do it.** Needs a Canva Pro account. Check anytime with `node cli.js status`.
 
