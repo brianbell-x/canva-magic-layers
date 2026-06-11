@@ -1,0 +1,19 @@
+{
+  "name": "canva-magic-layers",
+  "version": "2.0.0",
+  "description": "Expose Canva Magic Layers to agents: photo in -> all editable transparent-PNG layers out. Zero dependencies; Windows/Mac/Linux.",
+  "bin": {
+    "canva-magic-layers": "cli.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "login": "node cli.js login",
+    "status": "node cli.js status",
+    "decompose": "node cli.js decompose",
+    "harvest": "node cli.js harvest"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {}
+}
