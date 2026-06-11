@@ -1,5 +1,11 @@
 # Canva Magic Layers
 
+**Fastest install — paste this into your coding agent:**
+
+```
+Install this skill: https://github.com/brianbell-x/canva-magic-layers
+```
+
 **Photo in → every editable layer out.** Exposes Canva's *Magic Layers* — which
 rebuilds one flat image into a multi-layer design, AI-inpainting what sits behind
 each layer — to your coding agent, fully hands-off after a one-time login.
