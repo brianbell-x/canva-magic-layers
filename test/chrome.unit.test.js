@@ -6,7 +6,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const { buildArgs, findChrome, CDP, readPort, makePage, evaluate } = require("../chrome");
+const { buildArgs, findChrome, CDP, readPort, makePage, evaluate } = require("../scripts/chrome");
 
 // ---------- buildArgs ----------
 

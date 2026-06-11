@@ -2,7 +2,7 @@
 // No Chrome, no child process, no network: every command handler is a stub passed via deps.
 const { test, afterEach } = require("node:test");
 const assert = require("node:assert");
-const { run, USAGE } = require("../cli");
+const { run, USAGE } = require("../scripts/cli");
 
 // --- console / exitCode capture harness -------------------------------------
 // run() writes success to console.log and errors to console.error, and signals
@@ -30,7 +30,7 @@ function spy(value) {
 // Full set of handler spies so an unexpected dispatch is observable as a call.
 function allSpies(over = {}) {
   return Object.assign(
-    { status: spy(true), login: spy(true), decompose: spy({ count: 0, outDir: "", designId: "" }), harvest: spy({ count: 0, outDir: "", designId: "" }) },
+    { status: spy(true), login: spy(true), doctor: spy({ node: "22.0.0", nodeOk: true, chrome: "/x/chrome", signedIn: true }), decompose: spy({ count: 0, outDir: "", designId: "" }), harvest: spy({ count: 0, outDir: "", designId: "" }) },
     over
   );
 }
@@ -45,7 +45,7 @@ test("USAGE lists every command and the Env line", () => {
   assert.ok(USAGE.includes("status"), "USAGE mentions status");
   assert.ok(USAGE.includes("decompose"), "USAGE mentions decompose");
   assert.ok(USAGE.includes("harvest"), "USAGE mentions harvest");
-  assert.ok(USAGE.includes("mcp"), "USAGE mentions the mcp server command");
+  assert.ok(USAGE.includes("doctor"), "USAGE mentions the doctor self-check command");
   assert.ok(USAGE.includes("CANVA_CHROME"), "USAGE documents CANVA_CHROME env var");
   assert.ok(USAGE.includes("HEADED"), "USAGE documents HEADED env var");
   assert.ok(USAGE.includes("PROFILE"), "USAGE documents PROFILE env var");
@@ -90,7 +90,7 @@ test("status false prints the not-signed-in guidance (await is inside the ternar
     // A bare Promise is always truthy; getting this branch proves run() awaits status() first.
     await run(["node", "cli.js", "status"], allSpies({ status: async () => false }));
   } finally { c.restore(); }
-  assert.ok(c.out().includes("Not signed in — run `node cli.js login`."), "prints the login guidance");
+  assert.ok(c.out().includes("Not signed in — run `node scripts/cli.js login`."), "prints the login guidance");
 });
 
 // --- login -------------------------------------------------------------------
@@ -138,21 +138,32 @@ for (const [cmd, a1, a2, r] of [
   });
 }
 
-// --- mcp: dispatch starts the server with deps (stub the module via the require cache) -------
-test("`mcp` command starts the MCP server and hands it the deps", async () => {
-  const mcpPath = require.resolve("../mcp");
-  const real = require.cache[mcpPath];
-  const calls = [];
-  require.cache[mcpPath] = { id: mcpPath, filename: mcpPath, loaded: true, exports: { serve: (d) => calls.push(d) } };
-  try {
-    const c = capture();
-    const deps = allSpies();
-    try { await run(["node", "cli.js", "mcp"], deps); } finally { c.restore(); }
-    assert.strictEqual(calls.length, 1, "mcp.serve called exactly once");
-    assert.strictEqual(calls[0], deps, "serve receives the deps object");
-    assert.strictEqual(c.out(), "", "mcp prints nothing to stdout (stdout is the protocol channel)");
-    for (const k of ["status", "login", "decompose", "harvest"]) assert.strictEqual(deps[k].calls.length, 0, `${k} not called`);
-  } finally { if (real) require.cache[mcpPath] = real; else delete require.cache[mcpPath]; }
+// --- doctor: self-check report -----------------------------------------------
+test("doctor prints a per-check report and a 'Ready' line when Node+Chrome+session all pass", async () => {
+  const c = capture();
+  const deps = allSpies();
+  try { await run(["node", "cli.js", "doctor"], deps); } finally { c.restore(); }
+  assert.strictEqual(deps.doctor.calls.length, 1, "doctor handler called");
+  assert.ok(/Node 22\.0\.0 .*✓/.test(c.out()), "reports the Node check");
+  assert.ok(/Chrome \/x\/chrome ✓/.test(c.out()), "reports the resolved Chrome path");
+  assert.ok(/Signed in to Canva ✓/.test(c.out()), "reports the session check");
+  assert.ok(c.out().includes("Ready."), "summarises Ready when all checks pass");
+});
+
+test("doctor summarises 'Not ready' and marks the failing check when the session is missing", async () => {
+  const c = capture();
+  const deps = allSpies({ doctor: spy({ node: "22.0.0", nodeOk: true, chrome: "/x/chrome", signedIn: false }) });
+  try { await run(["node", "cli.js", "doctor"], deps); } finally { c.restore(); }
+  assert.ok(/Signed in to Canva ✗/.test(c.out()), "marks the missing session with ✗");
+  assert.ok(c.out().includes("Not ready"), "summarises Not ready");
+});
+
+test("doctor marks the session check '?' (undetermined) when no Chrome was found", async () => {
+  const c = capture();
+  const deps = allSpies({ doctor: spy({ node: "22.0.0", nodeOk: true, chrome: null, signedIn: null }) });
+  try { await run(["node", "cli.js", "doctor"], deps); } finally { c.restore(); }
+  assert.ok(/Chrome not found ✗/.test(c.out()), "reports Chrome not found");
+  assert.ok(/Signed in to Canva \?/.test(c.out()), "session is undetermined (null) without a browser");
 });
 
 // --- error boundary + non-zero exit -----------------------------------------

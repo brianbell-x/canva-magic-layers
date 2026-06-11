@@ -13,95 +13,56 @@ From one image it produces, in `outDir`:
 **Node 22+** and an installed **Chrome / Edge / Brave** — no browser bundled or
 downloaded, no `npm install`.
 
-## Give it to your agent
+## It's an Agent Skill
 
-It ships as an **MCP server** (works with any MCP-speaking agent) and as a plain
-**CLI** (works with any agent that has a shell). Pick whichever your agent supports —
-both expose the same four tools: `decompose`, `harvest`, `status`, `login`.
+This repo is an [Agent Skill](https://agentskills.io) — the open `SKILL.md` standard
+adopted by Claude Code, OpenAI Codex, Cursor, GitHub Copilot, Goose, Gemini CLI, and
+more. Install it by cloning the repo into your agent's skills directory:
 
-Use the **absolute path** to `mcp.js` in this repo. On Windows write it with forward
-slashes (e.g. `C:/dev/canva-skill/mcp.js`).
-
-**Claude Code** — one command, or commit a `.mcp.json`:
 ```bash
-claude mcp add canva-magic-layers -- node /path/to/canva-skill/mcp.js
-```
-```json
-{ "mcpServers": { "canva-magic-layers": {
-  "command": "node", "args": ["/path/to/canva-skill/mcp.js"] } } }
+# Claude Code
+git clone https://github.com/brianbell-x/canva-magic-layers ~/.claude/skills/canva-magic-layers
+# OpenAI Codex
+git clone https://github.com/brianbell-x/canva-magic-layers ~/.agents/skills/canva-magic-layers
 ```
 
-**OpenAI Codex** — `codex mcp add`, or add to `~/.codex/config.toml`:
+Project-scoped works too (`.claude/skills/…` for Claude Code, `.agents/skills/…` for
+Codex). The folder must contain `SKILL.md` at its top — don't nest it deeper. Your agent then discovers the
+skill from its description and runs the CLI itself. **Any other agent:** point it at
+`SKILL.md` and let it run the commands below — no skill runtime required, just a shell.
+
+Then do the one-time setup and verify it works:
+
 ```bash
-codex mcp add canva-magic-layers -- node /path/to/canva-skill/mcp.js
+node scripts/cli.js doctor   # checks Node, Chrome, and the saved session
+node scripts/cli.js login    # opens Chrome — sign in once (the only human step)
 ```
-```toml
-[mcp_servers.canva-magic-layers]
-command = "node"
-args = ["/path/to/canva-skill/mcp.js"]
-```
-
-**Hermes** (Nous Research) — `hermes mcp add`, or add to `~/.hermes/config.yaml`:
-```yaml
-mcp_servers:
-  canva-magic-layers:
-    command: node
-    args: ["/path/to/canva-skill/mcp.js"]
-```
-
-**OpenClaw** — `openclaw mcp set`, or add to `~/.openclaw/openclaw.json` under `mcp.servers`
-(a top-level `mcp` object with a `servers` map — note: not `mcpServers`):
-```bash
-openclaw mcp set canva-magic-layers '{"command":"node","args":["/path/to/canva-skill/mcp.js"]}'
-```
-```json
-{ "mcp": { "servers": { "canva-magic-layers": {
-  "command": "node", "args": ["/path/to/canva-skill/mcp.js"] } } } }
-```
-
-**Any other agent (CLI fallback)** — if it can run shell commands, just have it call:
-```bash
-node /path/to/canva-skill/cli.js decompose photo.png out/photo
-```
-
-**Claude Code as a skill** (alternative to MCP) — drop this repo into a skills folder
-(`~/.claude/skills/canva-magic-layers/`); Claude auto-discovers `SKILL.md` and drives
-the CLI itself.
-
-After wiring it up, do the one-time **login** below (or let the agent call the `login`
-tool). Then ask your agent things like *"decompose ./poster.png into layers"* and it
-will call the tool and read the PNGs back from `outDir`. `decompose`/`harvest` return JSON
-with the resolved `outDir`, `count`, and `designId`, so the agent always knows where the
-layers landed — even when `outDir` is defaulted.
 
 ## Sign in (one-time)
 
-```bash
-node cli.js login     # opens Chrome — sign in once; it auto-detects and closes
-node cli.js status    # check the saved session
-```
+Login is the only human step: it establishes the session in a persistent Chrome profile
+(`~/.canva-magic-layers-profile`), which **is** the credential — no API keys, no cookie
+files. Sign in with Canva email / magic-link rather than Google SSO (Google blocks
+automated browsers). A Canva **Pro/Teams** account is recommended (transparent export and
+the feature are gated). The session lasts a while; `doctor`/`status` tell you when to
+re-run `login`.
 
-Sign in with Canva email / magic-link rather than Google SSO (Google blocks automated
-browsers). Login is the only human step: it establishes the session in a persistent
-Chrome profile (`~/.canva-magic-layers-profile`), which **is** the credential — no API
-keys, no cookie files. A Canva **Pro/Teams** account is recommended (transparent export
-and the feature are gated). The session lasts a while; re-run `login` when `status`
-reports signed-out.
-
-## Use it directly (CLI)
+## Use it (CLI)
 
 ```bash
-node cli.js decompose path/to/photo.png [outDir]   # image -> layers (hands-off)
-node cli.js harvest <designUrlOrId> [outDir]        # layers from an already-split design
-node cli.js mcp                                      # run as an MCP server (for agents)
+node scripts/cli.js doctor                          # verify the install (Node + Chrome + session)
+node scripts/cli.js decompose path/to/photo.png [outDir]   # image -> layers (hands-off)
+node scripts/cli.js harvest <designUrlOrId> [outDir]        # layers from an already-split design
 ```
 
 `decompose` is fully autonomous after login — it opens an editor, uploads the image,
 runs Magic Layers, and saves every layer. `harvest` is the fallback when a design has
-already been split and you just want its layers. `outDir` defaults to `out/<name>`.
+already been split and you just want its layers. Both print JSON with the resolved
+`outDir`, `count`, and `designId`; `outDir` defaults to `out/<name>`.
 
 Env: `CANVA_CHROME=<path>` (force a browser binary), `HEADED=1` (show the browser
-instead of running it off-screen), `PROFILE=<dir>`.
+instead of running it off-screen), `PROFILE=<dir>`. Installed globally (`npm i -g .`)
+you also get a `canva-magic-layers` command, e.g. `canva-magic-layers decompose photo.png`.
 
 ## Tests
 
@@ -110,8 +71,9 @@ npm test     # node --test — runs anywhere, no Chrome or Canva login needed
 ```
 
 Offline tests mock the browser/network and pass on any machine. Live end-to-end checks
-are gated and skipped by default; unlock with `CANVA_LIVE=1` (plus
-`CANVA_TEST_DESIGN=<url-or-id>` for harvest, `CANVA_FULL=1` for decompose).
+are gated and skipped by default; unlock with `CANVA_LIVE=1` plus
+`CANVA_TEST_DESIGN=<url-or-id>` for harvest, or
+`CANVA_FULL=1 CANVA_TEST_IMAGE=<path-to-high-res-image>` for decompose.
 
 ## Notes & limits
 
@@ -119,11 +81,11 @@ are gated and skipped by default; unlock with `CANVA_LIVE=1` (plus
   image — it rejects small ones; on a too-small input `decompose` surfaces Canva's own
   "too small" message rather than failing silently.
 - Magic Layers is an async AI job (~30-90s) and consumes the account's AI allowance. The
-  MCP tool emits progress so long jobs don't trip your client's tool-call timeout.
+  full `decompose` command can take a couple of minutes — Canva's autosave of the rebuilt
+  layers lags the job — so it isn't stuck if it runs past 90s.
 - Best on graphic designs / illustrations / mockups; photo-realistic photos may split
   into fewer layers (subject + background).
 - Automating your own Canva account may conflict with Canva's Terms — use a dedicated
   account and human-like pacing; review before production use.
-- **API-free alternative** (no browser, no ToS concern): `fal-ai/qwen-image-layered`
-  (~$0.05/run) returns N transparent layers with inpainting — lower fidelity than Canva
-  on text/complex art.
+- How it works under the hood, more failure modes, and an API-free alternative:
+  [references/troubleshooting.md](references/troubleshooting.md).

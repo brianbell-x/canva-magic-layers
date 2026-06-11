@@ -8,7 +8,7 @@ const path = require("path");
 const chrome = require("./chrome");
 
 const HOME = "https://www.canva.com";
-const NOAUTH = "Not signed in to Canva (or session expired). Run `node cli.js login` once.";
+const NOAUTH = "Not signed in to Canva (or session expired). Run `node scripts/cli.js login` once.";
 const sleep = chrome.sleep;
 
 const designIdFrom = (s) => {
@@ -239,4 +239,16 @@ async function status() {
   finally { await s.close(); }
 }
 
-module.exports = { decompose, harvest, login, status, designIdFrom, AUTHED_JS, isAuthed, DISMISS_COOKIES_JS, dismissCookies, harvestJS, harvestPage, waitForLayers, save, clickJS, existsJS };
+// Self-check behind the `doctor` command: Node version, an installed Chrome, and whether the
+// saved session is live. signedIn is tri-state: true / false / null = undetermined — we only
+// probe when a browser exists, and a launch failure (e.g. profile already in use) leaves it
+// undetermined rather than aborting the whole report.
+async function doctor() {
+  const node = process.versions.node;
+  const nodeOk = Number(node.split(".")[0]) >= 22;
+  let chromePath = null; try { chromePath = chrome.findChrome(); } catch {}
+  let signedIn = null; if (chromePath) { try { signedIn = await status(); } catch {} }
+  return { node, nodeOk, chrome: chromePath, signedIn };
+}
+
+module.exports = { decompose, harvest, login, status, doctor, designIdFrom, AUTHED_JS, isAuthed, DISMISS_COOKIES_JS, dismissCookies, harvestJS, harvestPage, waitForLayers, save, clickJS, existsJS };

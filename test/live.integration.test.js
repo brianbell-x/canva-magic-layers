@@ -12,7 +12,7 @@
 // save, buildArgs, CDP, readPort, makePage, evaluate) live in the unit files, NOT here.
 //
 // Manual run contract:
-//   1. node cli.js login            (one-time, opens Chrome, sign in to Canva)
+//   1. node scripts/cli.js login    (one-time, opens Chrome, sign in to Canva)
 //   2. Auth check (real Chrome + logged-in profile):
 //        CANVA_LIVE=1 node --test test/live.integration.test.js
 //   3. Harvest a known already-split design:
@@ -27,7 +27,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const canva = require("../canva");
+const canva = require("../scripts/canva");
 
 const LIVE = process.env.CANVA_LIVE === "1";
 const tmp = (tag) => fs.mkdtempSync(path.join(os.tmpdir(), `canva-live-${tag}-`));

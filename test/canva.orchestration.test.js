@@ -13,8 +13,8 @@ const path = require("node:path");
 const fs = require("node:fs");
 const os = require("node:os");
 
-const CHROME_PATH = require.resolve("../chrome");
-const CANVA_PATH = require.resolve("../canva");
+const CHROME_PATH = require.resolve("../scripts/chrome");
+const CANVA_PATH = require.resolve("../scripts/canva");
 
 // Install a fake ./chrome and load a pristine ../canva that binds to it.
 function loadCanva(fakeChrome) {
@@ -23,7 +23,7 @@ function loadCanva(fakeChrome) {
   if (!("PROFILE" in fakeChrome)) fakeChrome.PROFILE = "p";
   require.cache[CHROME_PATH] = { id: CHROME_PATH, filename: CHROME_PATH, loaded: true, exports: fakeChrome };
   delete require.cache[CANVA_PATH];
-  return require("../canva");
+  return require("../scripts/canva");
 }
 
 function restoreModules() {

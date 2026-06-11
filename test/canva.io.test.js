@@ -9,10 +9,10 @@ const os = require("node:os");
 const path = require("node:path");
 
 // Patch chrome.sleep -> no-op, then (re)load canva so its `sleep` binding is the no-op.
-const chrome = require("../chrome");
+const chrome = require("../scripts/chrome");
 chrome.sleep = () => Promise.resolve();
-delete require.cache[require.resolve("../canva")];
-const { harvestPage, waitForLayers, save } = require("../canva");
+delete require.cache[require.resolve("../scripts/canva")];
+const { harvestPage, waitForLayers, save } = require("../scripts/canva");
 
 // ---------------------------------------------------------------------------
 // harvestPage

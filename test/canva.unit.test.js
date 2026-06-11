@@ -6,7 +6,7 @@ const { test } = require("node:test");
 const assert = require("node:assert");
 const vm = require("node:vm");
 
-const { designIdFrom, AUTHED_JS, DISMISS_COOKIES_JS, harvestJS, clickJS, existsJS } = require("../canva");
+const { designIdFrom, AUTHED_JS, DISMISS_COOKIES_JS, harvestJS, clickJS, existsJS } = require("../scripts/canva");
 
 // --- designIdFrom ---------------------------------------------------------
 
