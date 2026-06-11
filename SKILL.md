@@ -2,6 +2,7 @@
 name: canva-magic-layers
 description: Split a flat image into separate editable layers — each object as its own transparent PNG plus the AI-filled background — using Canva's Magic Layers. Use to extract the layers/elements from a mockup, poster, or AI-generated composite, or to make a flat image's pieces individually editable. Runs hands-off after a one-time human login.
 compatibility: Requires Node 22+, an installed Chrome/Edge/Brave, network access, and a Canva Pro/Teams account.
+license: MIT
 allowed-tools: Bash(node:*) Read
 metadata:
   version: "3.0.0"

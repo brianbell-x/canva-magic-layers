@@ -11,6 +11,7 @@
     "login": "node scripts/cli.js login",
     "status": "node scripts/cli.js status"
   },
+  "license": "MIT",
   "engines": {
     "node": ">=22"
   },
