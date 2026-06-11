@@ -38,6 +38,20 @@ node scripts/cli.js doctor   # checks Node, Chrome, and the saved session
 node scripts/cli.js login    # opens Chrome — sign in once (the only human step)
 ```
 
+## Installation instructions for agents
+
+If you are an AI agent setting this up for a user, install it as a skill — don't just run it ad hoc:
+
+1. **Ask the user where to install it:** Personal/Global (available in every project) or Project-scoped (this repository only).
+2. **Copy this skill** into the matching location below, as a folder named `canva-magic-layers` with `SKILL.md` at its top (don't nest it deeper):
+
+   | Agent | Personal / Global | Project-scoped |
+   | --- | --- | --- |
+   | Claude Code | `~/.claude/skills/canva-magic-layers/` | `.claude/skills/canva-magic-layers/` |
+   | Codex / `.agents` ecosystem | `~/.agents/skills/canva-magic-layers/` | `.agents/skills/canva-magic-layers/` |
+
+3. **Finish setup:** have the user run `node scripts/cli.js login` once (the only human step), then confirm with `node scripts/cli.js doctor`.
+
 ## Sign in (one-time)
 
 Login is the only human step: it establishes the session in a persistent Chrome profile
