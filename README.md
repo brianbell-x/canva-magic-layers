@@ -22,12 +22,12 @@ more. Install it by cloning the repo into your agent's skills directory:
 ```bash
 # Claude Code
 git clone https://github.com/brianbell-x/canva-magic-layers ~/.claude/skills/canva-magic-layers
-# OpenAI Codex
+# All others (.agents ecosystem)
 git clone https://github.com/brianbell-x/canva-magic-layers ~/.agents/skills/canva-magic-layers
 ```
 
 Project-scoped works too (`.claude/skills/…` for Claude Code, `.agents/skills/…` for
-Codex). The folder must contain `SKILL.md` at its top — don't nest it deeper. Your agent then discovers the
+all others). The folder must contain `SKILL.md` at its top — don't nest it deeper. Your agent then discovers the
 skill from its description and runs the CLI itself. **Any other agent:** point it at
 `SKILL.md` and let it run the commands below — no skill runtime required, just a shell.
 
@@ -48,7 +48,7 @@ If you are an AI agent setting this up for a user, install it as a skill — don
    | Agent | Personal / Global | Project-scoped |
    | --- | --- | --- |
    | Claude Code | `~/.claude/skills/canva-magic-layers/` | `.claude/skills/canva-magic-layers/` |
-   | Codex / `.agents` ecosystem | `~/.agents/skills/canva-magic-layers/` | `.agents/skills/canva-magic-layers/` |
+   | All others (`.agents` ecosystem) | `~/.agents/skills/canva-magic-layers/` | `.agents/skills/canva-magic-layers/` |
 
 3. **Finish setup:** have the user run `node scripts/cli.js login` once (the only human step), then confirm with `node scripts/cli.js doctor`.
 
