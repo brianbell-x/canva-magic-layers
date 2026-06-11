@@ -10,12 +10,11 @@ Env: CANVA_CHROME=<browser path>  HEADED=1 (show the browser window)  PROFILE=<d
 
 async function run(argv, deps = require("./canva")) {
   const [cmd, a1, a2] = argv.slice(2);
-  const { decompose, harvest, login, status } = deps;
+  const { login, status } = deps;
   try {
     if (cmd === "status") console.log((await status()) ? "Signed in to Canva. ✓" : "Not signed in — run `node cli.js login`.");
     else if (cmd === "login") console.log((await login()) ? "Signed in. ✓" : "Login not detected — try again.");
-    else if (cmd === "decompose" && a1) { const r = await decompose(a1, a2); console.log(`✓ ${r.count} layers -> ${r.outDir}\n  design: ${r.designId}`); }
-    else if (cmd === "harvest" && a1) { const r = await harvest(a1, a2); console.log(`✓ ${r.count} layers -> ${r.outDir}\n  design: ${r.designId}`); }
+    else if ((cmd === "decompose" || cmd === "harvest") && a1) { const r = await deps[cmd](a1, a2); console.log(`✓ ${r.count} layers -> ${r.outDir}\n  design: ${r.designId}`); }
     else console.log(USAGE);
   } catch (e) {
     console.error("✗ " + e.message);

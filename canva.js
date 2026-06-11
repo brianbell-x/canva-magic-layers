@@ -103,7 +103,6 @@ const clickJS = (re) => `(()=>{const rx=${re.toString()};const el=[...document.q
   .find(e=>rx.test(((e.getAttribute('aria-label')||e.textContent)||'').trim()));if(el){el.click();return true;}return false;})()`;
 const existsJS = (re) => `!![...document.querySelectorAll('button,[role=button],[role=menuitem],[role=tab],[aria-label]')]
   .find(e=>${re.toString()}.test(((e.getAttribute('aria-label')||e.textContent)||'').trim()))`;
-const hasUploadsTabJS = existsJS(/^uploads?$/i);
 
 // Full hands-off flow (no human after the one-time login): open a blank editor, upload the
 // photo into it, place it, run Magic Layers, and harvest the result. createToolJob can't be
@@ -160,7 +159,7 @@ async function decompose(imagePath, outDir) {
       if (/canva\.com\/(login|signup|log_?in|sign_?up)(\/|\?|$)/i.test(href)) throw new Error(NOAUTH);
       await page.evaluate(clickJS(/^(Close|Skip|Got it|Maybe later|Start designing)$/i)).catch(() => {});
       const mm = href.match(/\/design\/([A-Za-z0-9_-]{6,})\//);
-      if (mm && (await page.evaluate(hasUploadsTabJS).catch(() => false))) id = mm[1];
+      if (mm && (await page.evaluate(existsJS(/^uploads?$/i)).catch(() => false))) id = mm[1];
     }
     if (!id) throw new Error("Could not open a blank editor (UI changed, or " + NOAUTH + ").");
 

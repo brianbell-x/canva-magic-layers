@@ -109,49 +109,33 @@ test("login false prints 'Login not detected — try again.'", async () => {
   assert.ok(c.out().includes("Login not detected — try again."), "prints the retry guidance");
 });
 
-// --- decompose ---------------------------------------------------------------
-test("decompose success prints '✓ N layers -> dir' + design line and passes (a1,a2)", async () => {
-  const c = capture();
-  const decompose = spy({ count: 3, outDir: "out/x", designId: "DX" });
-  try {
-    await run(["node", "cli.js", "decompose", "img.png", "out/x"], allSpies({ decompose }));
-  } finally { c.restore(); }
-  assert.ok(c.out().includes("✓ 3 layers -> out/x"), "prints the layer count line");
-  assert.ok(c.out().includes("design: DX"), "prints the design id line");
-  assert.deepStrictEqual(decompose.calls, [["img.png", "out/x"]], "decompose called with (a1, a2) positionally");
-});
+// --- decompose / harvest (identical dispatch: success prints the template + passes (a1,a2);
+// missing a1 falls through to USAGE via the shared `&& a1` guard) ---------------
+for (const [cmd, a1, a2, r] of [
+  ["decompose", "img.png", "out/x", { count: 3, outDir: "out/x", designId: "DX" }],
+  ["harvest", "DAH", "out/DAH", { count: 40, outDir: "out/DAH", designId: "DAH" }],
+]) {
+  test(`${cmd} success prints '✓ N layers -> dir' + design line and passes (a1,a2)`, async () => {
+    const c = capture();
+    const handler = spy(r);
+    try {
+      await run(["node", "cli.js", cmd, a1, a2], allSpies({ [cmd]: handler }));
+    } finally { c.restore(); }
+    assert.ok(c.out().includes(`✓ ${r.count} layers -> ${r.outDir}`), "prints the layer count line");
+    assert.ok(c.out().includes(`design: ${r.designId}`), "prints the design id line");
+    assert.deepStrictEqual(handler.calls, [[a1, a2]], `${cmd} called with (a1, a2) positionally`);
+  });
 
-test("decompose without a1 falls through to USAGE (locks the `&& a1` guard)", async () => {
-  const c = capture();
-  const decompose = spy({ count: 9, outDir: "nope", designId: "NOPE" });
-  try {
-    await run(["node", "cli.js", "decompose"], allSpies({ decompose }));
-  } finally { c.restore(); }
-  assert.strictEqual(decompose.calls.length, 0, "decompose handler not called without a1");
-  assert.ok(c.out().includes("canva-magic-layers"), "prints USAGE instead");
-});
-
-// --- harvest -----------------------------------------------------------------
-test("harvest success prints '✓ N layers -> dir' + design line and passes (a1,a2)", async () => {
-  const c = capture();
-  const harvest = spy({ count: 40, outDir: "out/DAH", designId: "DAH" });
-  try {
-    await run(["node", "cli.js", "harvest", "DAH", "out/DAH"], allSpies({ harvest }));
-  } finally { c.restore(); }
-  assert.ok(c.out().includes("✓ 40 layers -> out/DAH"), "prints the layer count line");
-  assert.ok(c.out().includes("design: DAH"), "prints the design id line");
-  assert.deepStrictEqual(harvest.calls, [["DAH", "out/DAH"]], "harvest called with (a1, a2) positionally");
-});
-
-test("harvest without a1 falls through to USAGE (locks the `&& a1` guard)", async () => {
-  const c = capture();
-  const harvest = spy({ count: 9, outDir: "nope", designId: "NOPE" });
-  try {
-    await run(["node", "cli.js", "harvest"], allSpies({ harvest }));
-  } finally { c.restore(); }
-  assert.strictEqual(harvest.calls.length, 0, "harvest handler not called without a1");
-  assert.ok(c.out().includes("canva-magic-layers"), "prints USAGE instead");
-});
+  test(`${cmd} without a1 falls through to USAGE (locks the \`&& a1\` guard)`, async () => {
+    const c = capture();
+    const handler = spy({ count: 9, outDir: "nope", designId: "NOPE" });
+    try {
+      await run(["node", "cli.js", cmd], allSpies({ [cmd]: handler }));
+    } finally { c.restore(); }
+    assert.strictEqual(handler.calls.length, 0, `${cmd} handler not called without a1`);
+    assert.ok(c.out().includes("canva-magic-layers"), "prints USAGE instead");
+  });
+}
 
 // --- error boundary + non-zero exit -----------------------------------------
 test("a thrown handler error prints '✗ <message>' on stderr and sets exit code 1", async () => {

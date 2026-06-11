@@ -24,14 +24,9 @@ test("harvestPage passes through a well-formed result", async () => {
   assert.deepEqual(await harvestPage(fakePage, "id"), shape);
 });
 
-test("harvestPage normalizes a rejected evaluate to the empty shape", async () => {
-  const fakePage = { evaluate: async () => { throw new Error("x"); } };
-  assert.deepEqual(await harvestPage(fakePage, "id"), { refs: [], layers: [], doc: "" });
-});
-
-test("harvestPage normalizes a non-array refs result", async () => {
-  const fakePage = { evaluate: async () => ({ refs: "nope" }) };
-  assert.deepEqual(await harvestPage(fakePage, "id"), { refs: [], layers: [], doc: "" });
+test("harvestPage normalizes bad results (rejection, non-array refs) to the empty shape", async () => {
+  for (const evaluate of [async () => { throw new Error("x"); }, async () => ({ refs: "nope" })])
+    assert.deepEqual(await harvestPage({ evaluate }, "id"), { refs: [], layers: [], doc: "" });
 });
 
 // ---------------------------------------------------------------------------

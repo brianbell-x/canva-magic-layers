@@ -61,9 +61,8 @@ async function evaluate(cdp, sid, expression) {
   return result.value;
 }
 
-// Wrap a page target as a small driver: run in-page JS (evaluate) and a text predicate
-// (hasText). Page/Runtime/DOM/Network are enabled so callers can also drive the session
-// directly over CDP (Page.setInterceptFileChooserDialog, DOM.setFileInputFiles, …).
+// Page/Runtime/DOM/Network are enabled so callers can also drive the session directly
+// over CDP (Page.setInterceptFileChooserDialog, DOM.setFileInputFiles, …).
 async function makePage(cdp, targetId) {
   const { sessionId: sid } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
   for (const d of ["Page", "Runtime", "DOM", "Network"]) await cdp.send(`${d}.enable`, {}, sid).catch(() => {});
